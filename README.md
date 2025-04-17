@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ```
 
 <p align="center"><img width="100%" src="figures/net.png" /></p>
-<p align="center"><img width="100%" src="figures/dpaa.gif" /></p>
+<p align="center"><img width="100%" src="figures/dpaa.png" /></p>
 
 # model
 ```bash
