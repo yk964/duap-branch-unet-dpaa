@@ -63,11 +63,11 @@ class Fold3D:
         C = C_k // (self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2])
         D_out, H_out, W_out = self.output_size
 
-        # 初始化还原空间
+
         output = torch.zeros((B, C, D_out + 2 * self.padding[0], H_out + 2 * self.padding[1], W_out + 2 * self.padding[2]), 
                              device=patches.device)
 
-        # 创建权重张量，用于处理重叠区域加权 (计算重叠次数)
+
         weight = torch.zeros_like(output)
 
         # 获取特征图展开后的维度序号
@@ -80,7 +80,6 @@ class Fold3D:
         for d in range(D_eff):
             for h in range(H_eff):
                 for w in range(W_eff):
-                    # 计算放置的区域
                     d_start = d * self.stride[0]
                     h_start = h * self.stride[1]
                     w_start = w * self.stride[2]
@@ -89,17 +88,17 @@ class Fold3D:
                     h_end = h_start + self.kernel_size[1]
                     w_end = w_start + self.kernel_size[2]
 
-                    # 提取当前的 patch
+                    
                     patch = patches[:, :, patch_idx].view(B, C, *self.kernel_size)
 
-                    # 累加到还原空间
+                    
                     output[:, :, d_start:d_end, h_start:h_end, w_start:w_end] += patch
                     weight[:, :, d_start:d_end, h_start:h_end, w_start:w_end] += 1
                     patch_idx += 1
 
-        # 处理重叠问题，执行加权除法
+
         output = output / weight
-        # 去掉 padding 填充区域
+
         return output[:, :, 
                       self.padding[0]:D_out + self.padding[0], 
                       self.padding[1]:H_out + self.padding[1], 
@@ -112,29 +111,23 @@ class DPAABuilder2D(nn.Module):
         self.patch_size = patch_size
         self.att_depth = att_depth
         
-        # 图像初始投影
         self.conv_img = nn.Sequential(
             nn.Conv2d(in_channels, (n_channel*(2**att_depth)), kernel_size=7, padding=3),
             nn.Conv2d((n_channel*(2**att_depth)), classes_num, kernel_size=3, padding=1)
         )
-        
-        # 计算特征图的输入通道数
-        # 假设特征图经过了多次下采样，每层下采样后通道数翻倍
         feature_channels = n_channel * (2 ** att_depth)
-        
-        # 特征图投影
+
         self.conv_feamap = nn.Conv2d(
             in_channels=feature_channels, out_channels=classes_num,
             kernel_size=1, stride=1
         )
         
-        # 分块操作
+
         self.unfold = nn.Unfold(
             kernel_size=(patch_size, patch_size),
             stride=(patch_size, patch_size)
         )
         
-        # 空间关系增强
         self.resolution_trans = nn.Sequential(
             nn.Linear(patch_size**2, 2*patch_size**2),
             nn.Linear(2*patch_size**2, patch_size**2),
@@ -145,11 +138,10 @@ class DPAABuilder2D(nn.Module):
         B, C, H, W = x.shape
         attentions = []
 
-        # 步骤1-2: 图像和特征图投影
-        ini_img = self.conv_img(x)  # [B, Nc, H, W]
+        ini_img = self.conv_img(x)  
 
-        feamap = self.conv_feamap(features) / (2 ** self.att_depth * 2 ** self.att_depth)  # [B, Nc, H//s, W//s]
-        # print("——————————————",ini_img.shape,feamap.shape)
+        feamap = self.conv_feamap(features) / (2 ** self.att_depth * 2 ** self.att_depth)  
+
         
 
 
@@ -178,7 +170,7 @@ class DPAAUser2D(nn.Module):
         self.patch_size = patch_size
         self.att_depth = att_depth
         
-        # 折叠层（恢复patch到特征图）
+
         self.fold = nn.Fold(
             output_size=(512,512),
             kernel_size=(patch_size, patch_size),
@@ -203,11 +195,7 @@ class DPAAUser2D(nn.Module):
         )
 
     def forward(self, x, attentions):
-        """
-        x: decoder输出特征图 [B, C, H, W]
-        attentions: AFMA矩阵 [B, Nc, L1, L2] 
-                    (L1=H_img*W_img/patch_size^2, L2=H_feat*W_feat/patch_size^2)
-        """
+
         B, C, H, W = x.shape
 
         x_argmax = torch.argmax(x, dim=1)
@@ -221,7 +209,6 @@ class DPAAUser2D(nn.Module):
             -1  # L2 = (H_adj/patch_size) * (W_adj/patch_size)
         ).permute(0, 1, 3, 2)  # [B, C, L2, patch_size^2]
 
-        # 应用AFMA矩阵
         correction = []
         for i in range(C):
             att = attentions[:, i, :, :]  
@@ -322,10 +309,6 @@ class DPAAUser3D(nn.Module):
         )
 
     def forward(self, x, attentions):
-        """
-        x: Decoder 输出特征图 [B, C, D, H, W]
-        attentions: AFMA 矩阵 [B, Nc, L1, L2]
-        """
         B, C, D, H, W = x.shape
 
         x_argmax = torch.argmax(x, dim=1)
@@ -353,24 +336,14 @@ class DPAAUser3D(nn.Module):
 
         x = x + correction * x
         return x + correction * x, correction
+
     
+
 if __name__ == "__main__":
     B, C, H, W = 2, 1, 512, 512
     patch_size = 8
     att_depth = 1
 
-    # # 模拟builder输出
-    # L1 = (H // patch_size) * (W // patch_size)  # 512/16=32 -> 32x32=1024
-    # L2 = ((H//(2**att_depth))//patch_size * ((W//(2**att_depth))//patch_size))  # 512/2=256 -> 256/16=16 -> 16x16=256
-    # attentions = torch.randn(B, C, L1, L2)
-    # print(attentions.shape)
-    # # 用户模块
-    # user = AFMAUser2D(out_channels=C, patch_size=patch_size, att_depth=1)
-    # x = torch.randn(B, C, H, W)
-    # output = user(x, attentions)
-
-    # print("Input shape:", x.shape)         # [2, 1, 256, 256]
-    # print("Output shape:", output.shape)   # 保持相同形状
 
     builder3d = DPAABuilder3D(in_channels=1, classes_num=2, n_channel=32, patch_size=patch_size, att_depth=1)
     user3d = DPAAUser3D(out_channels=2, patch_size=patch_size, att_depth=1)

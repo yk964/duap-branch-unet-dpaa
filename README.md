@@ -9,10 +9,19 @@
 ## Data
 * [LiTS](https://www.kaggle.com/andrewmvd/liver-tumor-segmentation) 130 CT scans for segmentation of the liver as well as tumor lesions.
 
+## Installation
+```bash
+git clone https://github.com/AI4MyBUPT/dpaa.git
+cd dpaa 
+pip install -r requirements.txt
+```
+
+<p align="center"><img width="100%" src="figures/net.png" /></p>
+<p align="center"><img width="100%" src="figures/dpaa.gif" /></p>
 
 # model
-The My_UNet2d model consists of the following components:
-
+```bash
+The  model consists of the following components:
 Encoder (Downsampling):
 Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features.
 Includes two branches:
@@ -27,5 +36,6 @@ Output Layer:
 Produces the final segmentation mask using a 1x1 convolutional layer (Out).
 
 ## Run the codes
-train: python train.py
+```bash
+train: python train.py 
 validate: python val.py

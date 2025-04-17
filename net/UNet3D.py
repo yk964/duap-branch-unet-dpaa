@@ -150,8 +150,7 @@ class My_UNet3d(nn.Module):
         self.branch1_enc2 = Down(2 * n_channels, 8 * n_channels,stride=4)
 
 
-        # 第二分支：从原始图像中提取 patch
-        self.patch_extractor = nn.Conv3d(in_channels, 8 * n_channels, kernel_size=3, stride=8, padding=1)  # 假设patch大小为3x3x3，步长为8
+
 
     def forward(self, x):
         # 主干网络前向传播
@@ -160,24 +159,23 @@ class My_UNet3d(nn.Module):
 
         att = self.dpaa_builder(x,x2)
 
-        x3 = self.enc2(x2)
-        x4 = self.enc3(x3)
-        x5 = self.enc4(x4)
-        x6 = self.enc5(x5)
-
-
         branch1_x1 = self.branch1_conv(x)
         branch1_x2 = self.branch1_enc1(branch1_x1)
         branch1_x3 = self.branch1_enc2(branch1_x2)
 
+        branch1_x2 = self.branch1_enc1(branch1_x1)
+        x2= self.dual_cross_attn1(x2, branch1_x2) 
 
-        x2 = x2 + branch1_x2 * 0.5
-        x5 = x5 + branch1_x3 * 0.5
+        x3 = self.enc2(x2)
+        x4 = self.enc3(x3)
+
+        branch1_x3 = self.branch1_enc2(branch1_x2)
+        x4 = self.dual_cross_attn2(x4, branch1_x3)
 
         patch_features = self.patch_extractor(x)  
-  
-        x4 = x4 + patch_features  
 
+        x5 = self.enc4(x4)
+        x6 = self.enc5(x5)
 
         # 解码器部分
         mask = self.dec0(x6,x5)
