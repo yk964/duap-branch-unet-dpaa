@@ -19,21 +19,31 @@ pip install -r requirements.txt
 <p align="center"><img width="100%" src="figures/net.png" /></p>
 <p align="center"><img width="100%" src="figures/dpaa.png" /></p>
 
-# model
-```bash
-The  model consists of the following components:
-Encoder (Downsampling):
-Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features.
-Includes two branches:
-Branch 1: Captures high-resolution global information through fewer downsampling steps.
-Branch 2: Extracts patch-level features using a convolutional layer with a large stride.
-Decoder (Upsampling):
-Uses upsampling layers (Up) and skip connections to reconstruct the segmentation mask.
+# Model Architecture
+
+## Encoder (Downsampling)
+<div style="background-color: #f0f8ff; padding: 10px; border-radius: 5px;">
+Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features.  
+Includes two branches:  
+- **Branch 1**: Captures high-resolution global information through fewer downsampling steps.  
+- **Branch 2**: Extracts patch-level features using a convolutional layer with a large stride.
+</div>
+
+## Decoder (Upsampling)
+<div style="background-color: #fff8dc; padding: 10px; border-radius: 5px;">
+Uses upsampling layers (Up) and skip connections to reconstruct the segmentation mask.  
 Combines features from both branches for better localization and detail preservation.
-Attention Mechanism:
+</div>
+
+## Attention Mechanism
+<div style="background-color: #e6ffe6; padding: 10px; border-radius: 5px;">
 Implements the DPAA module to compute attention weights and refine the segmentation output.
-Output Layer:
+</div>
+
+## Output Layer
+<div style="background-color: #f8f8ff; padding: 10px; border-radius: 5px;">
 Produces the final segmentation mask using a 1x1 convolutional layer (Out).
+</div>
 
 ## Run the codes
 ```bash
