@@ -19,9 +19,9 @@ pip install -r requirements.txt
 <p align="center"><img width="100%" src="figures/net.png" /></p>
 <p align="center"><img width="100%" src="figures/dpaa.png" /></p>
 
-# Model Architecture
+# Model 
 
-## Encoder (Downsampling)
+## Model structure
 <div style="background-color: #f0f8ff; padding: 10px; border-radius: 5px;">
 Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features.  
 Includes two branches:  
@@ -29,20 +29,9 @@ Includes two branches:
 - **Branch 2**: Extracts patch-level features using a convolutional layer with a large stride.
 </div>
 
-## Decoder (Upsampling)
-<div style="background-color: #fff8dc; padding: 10px; border-radius: 5px;">
-Uses upsampling layers (Up) and skip connections to reconstruct the segmentation mask.  
-Combines features from both branches for better localization and detail preservation.
-</div>
-
-## Attention Mechanism
+## DPAA Attention Mechanism
 <div style="background-color: #e6ffe6; padding: 10px; border-radius: 5px;">
-Implements the DPAA module to compute attention weights and refine the segmentation output.
-</div>
-
-## Output Layer
-<div style="background-color: #f8f8ff; padding: 10px; border-radius: 5px;">
-Produces the final segmentation mask using a 1x1 convolutional layer (Out).
+The DPAA (Dynamic Patch-Aware Attention) module is designed to compute attention weights by dynamically assessing the similarity between image patches and shallow layer features. This process allows for the explicit modeling of the importance weights of different image regions, thereby highlighting the most relevant areas for the task at hand. By emphasizing these critical regions, DPAA enhances the model's decision-making capabilities, leading to more accurate and refined segmentation outputs. The mechanism effectively integrates local details with global context, ensuring that the model can make more informed predictions while preserving important details and boundaries.
 </div>
 
 ## Run the codes
