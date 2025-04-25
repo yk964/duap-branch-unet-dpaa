@@ -16,20 +16,17 @@ cd dpaa
 pip install -r requirements.txt
 ```
 
-<p align="center"><img width="100%" src="figures/net.png" /></p>
-<p align="center"><img width="100%" src="figures/dpaa.png" /></p>
-
 # Model 
 
 ## Model structure
 
-Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features.  
-Includes two branches:  
+Uses a series of convolutional layers (DoubleConv) and max-pooling operations (Down) to extract hierarchical features 
 
 Branch 1: Captures high-resolution global information through fewer downsampling steps.  
 
 Branch 2: Extracts patch-level features using a convolutional layer with a large stride.
 
+<p align="center"><img width="100%" src="figures/net.png" /></p>
 
 ## DPAA Attention Mechanism
 
@@ -41,6 +38,7 @@ By emphasizing these critical regions, DPAA enhances the model's decision-making
 
 that the model can make more informed predictions while preserving important details and boundaries.
 
+<p align="center"><img width="100%" src="figures/dpaa.png" /></p>
 
 ## Run the codes
 ```bash
